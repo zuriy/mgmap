@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Межигорье: карта мира, дата обновления 2014-12-10 00:30</title>
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <link rel="stylesheet" href="leaflet/leaflet-panel-layers.css" />
+    <link rel="stylesheet" href="leaflet/icons.css" />
+    <link rel="stylesheet" href="leaflet/Leaflet.Coordinates-0.1.3.css" />
+    <link rel="stylesheet" href="leaflet/leaflet-search.css" />
+    <link rel="stylesheet" href="leaflet/Control.MiniMap.css" />
+    
+    <script>
+    L_PREFER_CANVAS = true;
+    </script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="leaflet/L.Graticule.js" type="text/javascript"></script>
+    <script src="leaflet/leaflet-panel-layers.js" type="text/javascript"></script>
+    <script src="leaflet/Leaflet.Coordinates-0.1.3.min.js" type="text/javascript"></script>
+    <script src="leaflet/leaflet-search.js" type="text/javascript"></script>
+    <script src="colors.js" type="text/javascript"></script>
+    <script src="leaflet/Control.MiniMap.js" type="text/javascript"></script>
+       
+    <script src="map.js" type="text/javascript"></script>
+    <style type="text/css">
+    html,
+    body,
+    #map-container {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        background:  url("main_bg.jpg") no-repeat;
+        background-size: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map-container"></div>
+    <script src="getMapJson.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+    var map;
+    var mines;
+    var cityes;
+    var players;
+
+    map = initMap();
+    cityes = {
+        "type": "FeatureCollection",
+        "features": []
+    };
+    mines = {
+        "type": "FeatureCollection",
+        "features": []
+    };
+
+    var sindex = []; //layer contain searched elements
+    //generateColors();
+    loadMapData(datas, mines, cityes, sindex);
+
+    function localData(text, callResponse) {
+        //here can use custom criteria or merge data from multiple layers
+        callResponse(sindex);
+    }
+
+    function filterJSONCall(rawjson,text) { //callback that remap fields name
+            var json = {},
+                key, loc, disp = [];
+
+            for (var i in rawjson) {
+                disp = rawjson[i].title;
+                key = disp[0] + ', ' + disp[1];
+                key = rawjson[i].title +'';
+                //loc = L.latLng(rawjson[i].lat, rawjson[i].lon);
+
+                json[key] = rawjson[i].loc; //key,value format
+            }
+
+            return json;
+        }
+        //sindexLayer.addLayer(L.geoJson(cityes));
+    var baseLayers = [];
+    var overLayers = [{
+        name: 'Шахты',
+        sep: true
+    }, 
+    {   name: "Все",
+        icon: '<i class="icon icon-sand"></i>',
+        layer: L.geoJson(mines, { pointToLayer: featureToMarkerSand, onEachFeature: onEachFeature })
+    },
+      {
+        name: "Лига 1",
+        icon: '<i class="icon icon-sand"></i>',
+        layer: L.geoJson(mines, {
+        	filter: function(feature, layer) { return feature.league == 1},
+            pointToLayer: featureToMarkerSand,
+            onEachFeature: onEachFeature
+        })
+    },
+      {
+        name: "Лига 2",
+        icon: '<i class="icon icon-sand"></i>',
+        layer: L.geoJson(mines, {
+         	filter: function(feature, layer) { return feature.league == 2},       	
+            pointToLayer: featureToMarkerSand,
+            onEachFeature: onEachFeature
+        })
+    },
+       {
+        name: "Лига 3",
+        icon: '<i class="icon icon-sand"></i>',
+        layer: L.geoJson(mines, {
+        	filter: function(feature, layer) { return feature.league == 3},        	
+            pointToLayer: featureToMarkerSand,
+            onEachFeature: onEachFeature
+        })
+    },
+	{
+        name: 'Лиги',
+        sep: true
+    },
+     {
+        name: "Все города",
+        icon: '<i class="icon icon-city"></i>',
+        layer: L.geoJson(cityes, {
+            pointToLayer: featureToMarkerCity,
+            onEachFeature: onEachFeature
+        })
+    },
+     {
+        name: "Лига 1",
+        icon: '<i class="icon icon-city"></i>',
+        layer: L.geoJson(cityes, {
+            filter: function(feature, layer) { return feature.league == 1},
+            pointToLayer: featureToMarkerCity,
+            onEachFeature: onEachFeature
+        })
+    },
+      {
+        name: "Лига 2",
+        icon: '<i class="icon icon-city"></i>',
+        layer: L.geoJson(cityes, {
+            filter: function(feature, layer) { return feature.league == 2},
+            pointToLayer: featureToMarkerCity,
+            onEachFeature: onEachFeature
+        })
+    },
+      {
+        name: "Лига 3",
+        icon: '<i class="icon icon-city"></i>',
+        layer: L.geoJson(cityes, {
+            filter: function(feature, layer) { return feature.league == 3},
+            pointToLayer: featureToMarkerCity,
+            onEachFeature: onEachFeature
+        })
+    },
+     {
+        name: "Без лиги",
+        icon: '<i class="icon icon-city"></i>',
+        layer: L.geoJson(cityes, {
+            filter: function(feature, layer) { return feature.league == 0 && feature.country_id != 0},
+            pointToLayer: featureToMarkerCity,
+            onEachFeature: onEachFeature
+        })
+    }, 
+     {
+        name: "Без госа",
+        icon: '<i class="icon icon-city"></i>',
+        layer: L.geoJson(cityes, {
+            filter: function(feature, layer) { return feature.country_id == 0},
+            pointToLayer: featureToMarkerCity,
+            onEachFeature: onEachFeature
+        })
+    }          
+    ];
+    var panelLayers = new L.Control.PanelLayers(baseLayers, overLayers, {
+        collapsed: true
+    });
+    map.addControl(panelLayers);
+
+    var controlSearch = new L.Control.Search({
+        callData: localData,
+        initial: false,
+        text: 'Поиск игрока',
+        markerLocation: true,
+        textCancel: 'Отмена',
+        textErr: 'Игрок не найден',
+        filterJSON: filterJSONCall
+    });
+    map.addControl(controlSearch);
+
+    </script>
+</body>
+
+</html>

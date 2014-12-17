@@ -1,0 +1,14 @@
+.icon {
+	display: inline-block;
+	line-height: 16px;
+	margin: 2px;
+	height: 16px;
+	width: 16px;
+	background-color: #ccc;
+}
+
+/* ICONS */
+.icon-sand {
+	background: url('http://static.ua-play.com/images/main/resources/sand.png') center center no-repeat;
+}
+

@@ -86,6 +86,12 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
                 "id": i
             }
             mines.features.push(mine);
+            var title = "Шахта ("+league+"):"+ datas.Map[i].name,
+                loc = [locationy,locationx];
+            sindex.push({
+                loc: loc,
+                title: title
+            });
         }
         if (datas.Map[i].type == 'city') {
             //	locationx = Math.round(Math.random()*150);

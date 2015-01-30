@@ -1,4 +1,4 @@
-//20150130 10:00
+var dateOfUpdate = '2015.01.30 10:00';
 var datas = 
 {
     "Map": [{

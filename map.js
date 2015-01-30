@@ -28,7 +28,9 @@ function initMap() {
         //    		new L.LatLng(-10, squareSize+10)
         //)
     });
-  
+    
+
+    
     L.graticule({
         interval: 10
     }).addTo(map);

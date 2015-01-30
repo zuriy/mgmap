@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="leaflet/Control.MiniMap.css" />
     
     <script>
-    L_PREFER_CANVAS = true;
+    L_PREFER_CANVAS = false;
     </script>
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script src="leaflet/L.Graticule.js" type="text/javascript"></script>
@@ -137,6 +137,9 @@
         name: "Все города",
         icon: '<i class="icon icon-city"></i>',
         layer: L.geoJson(cityes, {
+           style: function (feature) {
+                 return feature.properties.style;
+            },            
             pointToLayer: featureToMarkerCity,
             onEachFeature: onEachFeature
         })
@@ -146,8 +149,12 @@
         icon: '<i class="icon icon-city"></i>',
         layer: L.geoJson(cityes, {
             filter: function(feature, layer) { return feature.league == 1},
+            style: function (feature) {
+                 return feature.properties.style;
+            },            
             pointToLayer: featureToMarkerCity,
             onEachFeature: onEachFeature
+
         })
     },
       {
@@ -155,6 +162,9 @@
         icon: '<i class="icon icon-city"></i>',
         layer: L.geoJson(cityes, {
             filter: function(feature, layer) { return feature.league == 2},
+            style: function (feature) {
+                 return feature.properties.style;
+            },            
             pointToLayer: featureToMarkerCity,
             onEachFeature: onEachFeature
         })
@@ -164,6 +174,9 @@
         icon: '<i class="icon icon-city"></i>',
         layer: L.geoJson(cityes, {
             filter: function(feature, layer) { return feature.league == 3},
+            style: function (feature) {
+                 return feature.properties.style;
+            },            
             pointToLayer: featureToMarkerCity,
             onEachFeature: onEachFeature
         })
@@ -173,6 +186,9 @@
         icon: '<i class="icon icon-city"></i>',
         layer: L.geoJson(cityes, {
             filter: function(feature, layer) { return feature.league == 0 && feature.country_id != 0},
+            style: function (feature) {
+                 return feature.properties.style;
+            },            
             pointToLayer: featureToMarkerCity,
             onEachFeature: onEachFeature
         })
@@ -182,6 +198,9 @@
         icon: '<i class="icon icon-city"></i>',
         layer: L.geoJson(cityes, {
             filter: function(feature, layer) { return feature.country_id == 0},
+           style: function (feature) {
+                 return feature.properties.style;
+            },            
             pointToLayer: featureToMarkerCity,
             onEachFeature: onEachFeature
         })

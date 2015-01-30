@@ -108,10 +108,18 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
                     league = getStr(datas.Countries,country_name,"name_s").league;
                 }
                 else country_name = 'Нет';
+            if (country_id == 0) 
+             //fillColor = "#ee7800"
+             fillColor = "#333333"
+            else fillColor = colors[country_id];
             city = {
+                "coordinates":[locationx,locationy],
                 "geometry": {
-                    "type": "Point",
-                    "coordinates": [locationx, locationy]
+                    "type": "MultiPolygon",
+                    //"coordinates": [locationx, locationy]
+                    "coordinates": [[[ [locationx-1,locationy -1],[locationx,locationy -1],
+                    [locationx,locationy],[locationx-1,locationy],[locationx-1,locationy -1] ]
+                    ]]
                 },
                 "type": "Feature",
                 "us_id": us_id,
@@ -120,6 +128,14 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
                 "title": datas.Map[i],
                 "league": league,
                 "properties": {
+                    "style": {
+                        weight: 1,
+                        color: fillColor,
+                        //opacity: 1,
+                        fillColor: fillColor,
+                        fillOpacity: 1
+                    },
+                    "color": fillColor,
                     "popupContent": " Игрок: <B>" + datas.Map[i].nick + "</B>" + "<BR>" 
                                     + "Город:<B>" + datas.Map[i].name + "</B>" + "<BR>" 
                                     + "Государство:<B>" + country_name + "</B>" + "<BR>"
@@ -155,7 +171,7 @@ function onEachFeature(feature, layer) {
     if (feature.properties && feature.properties.popupContent) {
         popupContent += feature.properties.popupContent;
     }
-    popupContent += "<BR>" + "Координаты x,y: " + feature.geometry.coordinates;
+    popupContent += "<BR>" + "Координаты x,y: " + feature.coordinates;
     layer.bindPopup(popupContent);
  //   if (!(layer instanceof L.Point)) {
  //                   layer.on('mouseover', function () {

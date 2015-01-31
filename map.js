@@ -1,3 +1,4 @@
+var info;
 function initMap() {
     //Определим карту
     var squareSize = 150;
@@ -53,6 +54,48 @@ function initMap() {
         useDMS: false, //optional default false
         useLatLngOrder: true //ordering of labels, default false-> lng-lat
     }).addTo(map);
+    // control that shows state info on hover
+    info = L.control();
+
+    info.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'info');
+        this.update();
+        return this._div;
+    };
+
+    info.update = function (props) {
+            this._div.innerHTML = '<h4>Информация</h4>' +  (props ?
+                //'<b>' + props.name + '</b><br />'
+                props.popupContent +'<br/> Координаты х,у:' + props.coordinates + ' '
+                : 'Для получения информации <br/> об игроке <br/> Наведите на город / шахту');
+    };
+
+    info.addTo(map);
+
+с= L.control({position: 'bottomright'});
+
+        legend.onAdd = function (map) {
+
+            var div = L.DomUtil.create('div', 'info legend'),
+                grades = [0, 10, 20, 50, 100, 200, 500, 1000],
+                labels = [],
+                from, to;
+
+            for (var i = 0; i < grades.length; i++) {
+                from = grades[i];
+                to = grades[i + 1];
+
+                labels.push(
+                    '<i style="background:' + getColor(from + 1) + '"></i> ' +
+                    from + (to ? '&ndash;' + to : '+'));
+            }
+
+            div.innerHTML = labels.join('<br>');
+            return div;
+        };
+
+        legend.addTo(map);
+
     //var miniMap = new L.Control.MiniMap(polygon, { toggleDisplay: true }).addTo(map); 
     return map;
 }
@@ -80,9 +123,11 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
                     "type": "Point",
                     "coordinates": [locationx, locationy]
                 },
+                "coordinates":[locationx,locationy],
                 "type": "Feature",
                 "league": league,
                 "properties": {
+                    "coordinates":[locationx,locationy],
                     "popupContent": "Шахта:<B>" + datas.Map[i].name+'</B><BR>Лига:<B>'+league+'</B>'
                 },
                 "id": i
@@ -115,7 +160,6 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
              fillColor = "#333333"
             else fillColor = colors[country_id];
             city = {
-                "coordinates":[locationx,locationy],
                 "geometry": {
                     "type": "MultiPolygon",
                     //"coordinates": [locationx, locationy]
@@ -132,11 +176,12 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
                 "properties": {
                     "style": {
                         weight: 1,
-                        color: fillColor,
+                        color: '#000',
                         //opacity: 1,
                         fillColor: fillColor,
                         fillOpacity: 1
                     },
+                    "coordinates":[locationx,locationy],
                     "color": fillColor,
                     "popupContent": " Игрок: <B>" + datas.Map[i].nick + "</B>" + "<BR>" 
                                     + "Город:<B>" + datas.Map[i].name + "</B>" + "<BR>" 
@@ -155,7 +200,31 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
 
     };
 }
+function highlightFeature(e){
+    var layer = e.target;
 
+    layer.setStyle({
+                weight: 5,
+                color: '#666',
+                fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera) {
+        layer.bringToFront();
+    }
+
+    info.update(layer.feature.properties);
+}
+function resetHighlight(e){
+  //  e.layer.resetStyle(e.target);
+  var layer = e.target;
+   layer.setStyle({
+                weight: 1,
+                color: '#000',
+                fillOpacity: 1
+    });
+    info.update();
+}
 function onEachFeature(feature, layer) {
 	//Выделение при наведении
     var popupContent = "";
@@ -173,8 +242,12 @@ function onEachFeature(feature, layer) {
     if (feature.properties && feature.properties.popupContent) {
         popupContent += feature.properties.popupContent;
     }
-    popupContent += "<BR>" + "Координаты x,y: " + feature.coordinates;
+    popupContent += "<BR>" + "Координаты x,y: " + feature.properties.coordinates;
     layer.bindPopup(popupContent);
+    layer.on({
+        mouseover: highlightFeature, //you need to change this
+        mouseout: resetHighlight,
+    });
  //   if (!(layer instanceof L.Point)) {
  //                   layer.on('mouseover', function () {
  //                       layer.setStyle(hoverStyle);

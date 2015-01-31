@@ -1,4 +1,18 @@
 var info;
+var legend;
+var countries;
+var sort_by = function(field, reverse, primer){
+
+   var key = primer ? 
+       function(x) {return primer(x[field])} : 
+       function(x) {return x[field]};
+
+   reverse = [-1, 1][+!!reverse];
+
+   return function (a, b) {
+       return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+     } 
+}
 function initMap() {
     //Определим карту
     var squareSize = 150;
@@ -55,7 +69,7 @@ function initMap() {
         useLatLngOrder: true //ordering of labels, default false-> lng-lat
     }).addTo(map);
     // control that shows state info on hover
-    info = L.control();
+    info = L.control({position: 'bottomright'});
 
     info.onAdd = function (map) {
         this._div = L.DomUtil.create('div', 'info');
@@ -72,29 +86,33 @@ function initMap() {
 
     info.addTo(map);
 
-с= L.control({position: 'bottomright'});
+    legend = L.control({position: 'bottomright'});
 
-        legend.onAdd = function (map) {
+    legend.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'info legend');
+        //this.update();
+        return this._div;
+    };
+    legend.update = function (List) {
 
-            var div = L.DomUtil.create('div', 'info legend'),
+            var div = this._div,
                 grades = [0, 10, 20, 50, 100, 200, 500, 1000],
                 labels = [],
                 from, to;
-
-            for (var i = 0; i < grades.length; i++) {
-                from = grades[i];
-                to = grades[i + 1];
-
+            country_limit = 10;
+            for (var i = 0; i < country_limit; i++) {
+                country_name = countries[i].name;
+                country_id   = countries[i].countryID;
+                
                 labels.push(
-                    '<i style="background:' + getColor(from + 1) + '"></i> ' +
-                    from + (to ? '&ndash;' + to : '+'));
+                    '<i style="background:' + colors[country_id] + '"></i> ' +
+                    country_name);
             }
 
             div.innerHTML = labels.join('<br>');
-            return div;
-        };
+    };
 
-        legend.addTo(map);
+    legend.addTo(map);
 
     //var miniMap = new L.Control.MiniMap(polygon, { toggleDisplay: true }).addTo(map); 
     return map;
@@ -111,6 +129,8 @@ function getStr(arrForSearch,searched,fieldName){
 function loadMapData(datas, mines, cityes, sindexLayer) {
     var maxAdd = datas.Map.length - 1;
     Players = datas.Players;
+    countries = datas.Countries;
+    countries.sort(sort_by('points', false, parseInt));
     for (var i = 0; i < maxAdd; i++) {
         if (datas.Map[i].type == 'mine') {
             //		locationx = Math.round(Math.random()*150);

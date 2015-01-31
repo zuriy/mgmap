@@ -53,7 +53,7 @@
     }     
     .info {
             padding: 6px 8px;
-            right: 0px;
+            right: 40px;
             min-height:120px;
             font: 14px/16px Arial, Helvetica, sans-serif;
             background: white;
@@ -86,7 +86,6 @@
         <div id="background-pic"> <div id="info-about-map"></div>
         </div>
     </div>
-    <div id = "leaflet-panel-layers"> <div id="info"></div> </div>
     <script src="getMapJson.js" type="text/javascript"></script>
 
     <script type="text/javascript">
@@ -129,9 +128,7 @@
 
             return json;
         }
-    function highlightCityInfo(){
 
-    }    
         //sindexLayer.addLayer(L.geoJson(cityes));
     var baseLayers = [];
     var overLayers = [{
@@ -225,7 +222,9 @@
         name: "Без лиги",
         icon: '<i class="icon icon-city"></i>',
         layer: L.geoJson(cityes, {
-            filter: function(feature, layer) { return feature.league == 0 && feature.country_id != 0},
+            filter: function(feature, layer) { 
+                return feature.league == 0 && feature.country_id != 0
+            },
             style: function (feature) {
                  return feature.properties.style;
             },            
@@ -249,6 +248,7 @@
     var panelLayers = new L.Control.PanelLayers(baseLayers, overLayers, {
         collapsed: true
     });
+
     map.addControl(panelLayers);
 
     var controlSearch = new L.Control.Search({
@@ -265,6 +265,8 @@
     left_info.innerHTML = "<B>Карта игрового мира Межигорье.</B";
     about = 'Дата обновления: <B> '+dateOfUpdate+'</B>';
     map.attributionControl.addAttribution(about);
+    legend.update();
+
     </script>
 </body>
 

@@ -13,6 +13,13 @@ var sort_by = function(field, reverse, primer){
        return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
      } 
 }
+function formatCoordinateLat(coordinate){
+    return "," + Math.round(coordinate,0);
+}
+function formatCoordinateLng(coordinate){
+    return "Координаты Х:" + Math.round(coordinate,0);
+}
+
 function initMap() {
     //Определим карту
     var squareSize = 150;
@@ -61,12 +68,14 @@ function initMap() {
     L.control.coordinates({
         position: "bottomleft", //optional default "bootomright"
         decimals: 0, //optional default 4
-        decimalSeperator: ".", //optional default "."
+        decimalSeperator: ",", //optional default "."
         labelTemplateLat: "Координаты Х: {y}", //optional default "Lat: {y}"
         labelTemplateLng: "Y: {x}", //optional default "Lng: {x}"
+        labelFormatterLat:formatCoordinateLat,
+        labelFormatterLng:formatCoordinateLng,
         enableUserInput: true, //optional default true
         useDMS: false, //optional default false
-        useLatLngOrder: true //ordering of labels, default false-> lng-lat
+        useLatLngOrder: false //ordering of labels, default false-> lng-lat
     }).addTo(map);
     // control that shows state info on hover
     info = L.control({position: 'bottomright'});
@@ -89,7 +98,7 @@ function initMap() {
     legend = L.control({position: 'bottomright'});
 
     legend.onAdd = function (map) {
-        this._div = L.DomUtil.create('div', 'info legend');
+        this._div = L.DomUtil.create('div', 'legend');
         //this.update();
         return this._div;
     };

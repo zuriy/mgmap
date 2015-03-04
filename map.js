@@ -147,17 +147,38 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
             locationx = datas.Map[i].location.x;
             locationy = datas.Map[i].location.y;
             league    = datas.Map[i].league;
+            country_id = datas.Map[i].owner_id;
+            CountrStr = getStr(countries,country_id,'countryID')
+            if (country_id != 0) {
+                    country_name =  CountrStr.name;
+                    league = CountrStr.league;
+                }
+                else country_name = 'Нет';
+            if (country_id == 0) 
+             //fillColor = "#ee7800"
+             fillColor = "#333333"
+            else fillColor = colors[country_id];           
             mine = {
                 "geometry": {
                     "type": "Point",
                     "coordinates": [locationx, locationy]
                 },
                 "coordinates":[locationx,locationy],
+                "country_id": country_id,
+                "country_name": country_name,
                 "type": "Feature",
                 "league": league,
                 "properties": {
+                    "style": {
+                        weight: 1,
+                        color: '#000',
+                        //opacity: 1,
+                        fillColor: fillColor,
+                        fillOpacity: 1
+                    },
                     "coordinates":[locationx,locationy],
                     "popupContent": "Шахта:<B>" + datas.Map[i].name+'</B><BR>Лига:<B>'+league+'</B>'
+                    + "<BR> Государство:<B>" + country_name + "</B>" + "<BR>"
                 },
                 "id": i
             }
@@ -288,10 +309,13 @@ function onEachFeature(feature, layer) {
 }
 
 function featureToMarkerSand(feature, latlng) {
+   if (feature.country_id == 0) 
+        fillColor = "#70cc51"
+    else fillColor = colors[feature.country_id];
 
     return L.circleMarker(latlng, {
         radius: 6,
-        fillColor: "#70cc51",
+        fillColor: fillColor,
         color: "#000",
         weight: 1,
         opacity: 1,

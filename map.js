@@ -1,3 +1,25 @@
+var info;
+var legend;
+var countries;
+var sort_by = function(field, reverse, primer){
+
+   var key = primer ? 
+       function(x) {return primer(x[field])} : 
+       function(x) {return x[field]};
+
+   reverse = [-1, 1][+!!reverse];
+
+   return function (a, b) {
+       return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+     } 
+}
+function formatCoordinateLat(coordinate){
+    return "," + Math.round(coordinate,0);
+}
+function formatCoordinateLng(coordinate){
+    return "Координаты Х:" + Math.round(coordinate,0);
+}
+
 function initMap() {
     //Определим карту
     var squareSize = 150;
@@ -46,13 +68,61 @@ function initMap() {
     L.control.coordinates({
         position: "bottomleft", //optional default "bootomright"
         decimals: 0, //optional default 4
-        decimalSeperator: ".", //optional default "."
+        decimalSeperator: ",", //optional default "."
         labelTemplateLat: "Координаты Х: {y}", //optional default "Lat: {y}"
         labelTemplateLng: "Y: {x}", //optional default "Lng: {x}"
+        labelFormatterLat:formatCoordinateLat,
+        labelFormatterLng:formatCoordinateLng,
         enableUserInput: true, //optional default true
         useDMS: false, //optional default false
-        useLatLngOrder: true //ordering of labels, default false-> lng-lat
+        useLatLngOrder: false //ordering of labels, default false-> lng-lat
     }).addTo(map);
+    // control that shows state info on hover
+    info = L.control({position: 'bottomright'});
+
+    info.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'info');
+        this.update();
+        return this._div;
+    };
+
+    info.update = function (props) {
+            this._div.innerHTML = '<h4>Информация</h4>' +  (props ?
+                //'<b>' + props.name + '</b><br />'
+                props.popupContent +'<br/> Координаты х,у:' + props.coordinates + ' '
+                : 'Для получения информации <br/> об игроке <br/> Наведите на город / шахту');
+    };
+
+    info.addTo(map);
+
+    legend = L.control({position: 'bottomright'});
+
+    legend.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'legend');
+        //this.update();
+        return this._div;
+    };
+    legend.update = function (List) {
+
+            var div = this._div,
+                grades = [0, 10, 20, 50, 100, 200, 500, 1000],
+                labels = [],
+                from, to;
+            country_limit = 10;
+            for (var i = 0; i < country_limit; i++) {
+                country_name = countries[i].name;
+                country_id   = countries[i].countryID;
+                
+                labels.push(
+                    '<i style="background:' + colors[country_id] + '"></i> ' +
+                    country_name);
+            }
+
+            div.innerHTML = labels.join('<br>');
+    };
+
+    legend.addTo(map);
+
     //var miniMap = new L.Control.MiniMap(polygon, { toggleDisplay: true }).addTo(map); 
     return map;
 }
@@ -68,6 +138,8 @@ function getStr(arrForSearch,searched,fieldName){
 function loadMapData(datas, mines, cityes, sindexLayer) {
     var maxAdd = datas.Map.length - 1;
     Players = datas.Players;
+    countries = datas.Countries;
+    countries.sort(sort_by('points', false, parseInt));
     for (var i = 0; i < maxAdd; i++) {
         if (datas.Map[i].type == 'mine') {
             //		locationx = Math.round(Math.random()*150);
@@ -75,15 +147,38 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
             locationx = datas.Map[i].location.x;
             locationy = datas.Map[i].location.y;
             league    = datas.Map[i].league;
+            country_id = datas.Map[i].owner_id;
+            CountrStr = getStr(countries,country_id,'countryID')
+            if (country_id != 0) {
+                    country_name =  CountrStr.name;
+                    league = CountrStr.league;
+                }
+                else country_name = 'Нет';
+            if (country_id == 0) 
+             //fillColor = "#ee7800"
+             fillColor = "#333333"
+            else fillColor = colors[country_id];           
             mine = {
                 "geometry": {
                     "type": "Point",
                     "coordinates": [locationx, locationy]
                 },
+                "coordinates":[locationx,locationy],
+                "country_id": country_id,
+                "country_name": country_name,
                 "type": "Feature",
                 "league": league,
                 "properties": {
+                    "style": {
+                        weight: 1,
+                        color: '#000',
+                        //opacity: 1,
+                        fillColor: fillColor,
+                        fillOpacity: 1
+                    },
+                    "coordinates":[locationx,locationy],
                     "popupContent": "Шахта:<B>" + datas.Map[i].name+'</B><BR>Лига:<B>'+league+'</B>'
+                    + "<BR> Государство:<B>" + country_name + "</B>" + "<BR>"
                 },
                 "id": i
             }
@@ -115,7 +210,6 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
              fillColor = "#333333"
             else fillColor = colors[country_id];
             city = {
-                "coordinates":[locationx,locationy],
                 "geometry": {
                     "type": "MultiPolygon",
                     //"coordinates": [locationx, locationy]
@@ -132,11 +226,12 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
                 "properties": {
                     "style": {
                         weight: 1,
-                        color: fillColor,
+                        color: '#000',
                         //opacity: 1,
                         fillColor: fillColor,
                         fillOpacity: 1
                     },
+                    "coordinates":[locationx,locationy],
                     "color": fillColor,
                     "popupContent": " Игрок: <B>" + datas.Map[i].nick + "</B>" + "<BR>" 
                                     + "Город:<B>" + datas.Map[i].name + "</B>" + "<BR>" 
@@ -155,7 +250,31 @@ function loadMapData(datas, mines, cityes, sindexLayer) {
 
     };
 }
+function highlightFeature(e){
+    var layer = e.target;
 
+    layer.setStyle({
+                weight: 5,
+                color: '#666',
+                fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera) {
+        layer.bringToFront();
+    }
+
+    info.update(layer.feature.properties);
+}
+function resetHighlight(e){
+  //  e.layer.resetStyle(e.target);
+  var layer = e.target;
+   layer.setStyle({
+                weight: 1,
+                color: '#000',
+                fillOpacity: 1
+    });
+    info.update();
+}
 function onEachFeature(feature, layer) {
 	//Выделение при наведении
     var popupContent = "";
@@ -173,8 +292,12 @@ function onEachFeature(feature, layer) {
     if (feature.properties && feature.properties.popupContent) {
         popupContent += feature.properties.popupContent;
     }
-    popupContent += "<BR>" + "Координаты x,y: " + feature.coordinates;
+    popupContent += "<BR>" + "Координаты x,y: " + feature.properties.coordinates;
     layer.bindPopup(popupContent);
+    layer.on({
+        mouseover: highlightFeature, //you need to change this
+        mouseout: resetHighlight,
+    });
  //   if (!(layer instanceof L.Point)) {
  //                   layer.on('mouseover', function () {
  //                       layer.setStyle(hoverStyle);
@@ -186,10 +309,13 @@ function onEachFeature(feature, layer) {
 }
 
 function featureToMarkerSand(feature, latlng) {
+   if (feature.country_id == 0) 
+        fillColor = "#70cc51"
+    else fillColor = colors[feature.country_id];
 
     return L.circleMarker(latlng, {
         radius: 6,
-        fillColor: "#70cc51",
+        fillColor: fillColor,
         color: "#000",
         weight: 1,
         opacity: 1,
